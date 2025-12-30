@@ -1,0 +1,58 @@
+# General configuration (IDE, OS, and Tool-specific files)
+.DS_Store
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+*.swp
+*.swo
+*~
+HELP.md
+
+# Gradle specific
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+out/
+!**/src/**/out/
+
+# STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/**/bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Docker Compose
+compose.yaml
+docker-compose.yml
+docker-compose.*.yml
+
+# Environment Variables
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+
+*.yml
