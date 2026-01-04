@@ -1,4 +1,4 @@
-package com.kangaroo.sparring.global.security;
+package com.kangaroo.sparring.global.security.jwt;
 
 import com.kangaroo.sparring.domain.user.entity.User;
 import com.kangaroo.sparring.domain.user.repository.UserRepository;

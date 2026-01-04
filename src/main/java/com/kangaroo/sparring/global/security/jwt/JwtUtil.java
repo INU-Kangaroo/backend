@@ -1,4 +1,4 @@
-package com.kangaroo.sparring.global.security;
+package com.kangaroo.sparring.global.security.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

@@ -1,8 +1,8 @@
 package com.kangaroo.sparring.global.config;
 
-import com.kangaroo.sparring.global.security.JwtAccessDeniedHandler;
-import com.kangaroo.sparring.global.security.JwtAuthenticationEntryPoint;
-import com.kangaroo.sparring.global.security.JwtAuthenticationFilter;
+import com.kangaroo.sparring.global.security.jwt.JwtAccessDeniedHandler;
+import com.kangaroo.sparring.global.security.jwt.JwtAuthenticationEntryPoint;
+import com.kangaroo.sparring.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

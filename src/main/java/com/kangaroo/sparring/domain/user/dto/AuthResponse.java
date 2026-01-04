@@ -17,7 +17,7 @@ public class AuthResponse {
     @Schema(description = "이메일", example = "test@example.com")
     private String email;
 
-    @Schema(description = "닉네임", example = "길동이")
+    @Schema(description = "닉네임", example = "홍길동")
     private String nickname;
 
     @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
