@@ -19,8 +19,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
 /**
- * Authorization 헤더의 Bearer 토큰을 파싱하여 SecurityContext에 인증 정보를 설정하는 필터.
+ * Authorization Header 의 Bearer token 을 parsing 하여 Authentication 정보를 SecurityContext 에 저장하는 역할을 한다.
  */
 @Slf4j
 @Component
@@ -39,23 +40,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        try {
-            String token = resolveToken(request);
-            if (token != null && jwtUtil.validateToken(token)) {
-                Long userId = jwtUtil.getUserIdFromToken(token);
-                com.kangaroo.sparring.domain.user.entity.User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        String token = resolveToken(request);
+        if (token != null && jwtUtil.validateToken(token)) {
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-                if (!user.getIsActive() || user.isDeleted()) {
-                    throw new CustomException(ErrorCode.INACTIVE_USER);
-                }
-
-                UsernamePasswordAuthenticationToken authentication = buildAuthentication(user, request);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (!user.getIsActive() || user.isDeleted()) {
+                throw new CustomException(ErrorCode.INACTIVE_USER);
             }
-        } catch (CustomException ex) {
-            log.warn("JWT 인증 실패: {}", ex.getMessage());
-            SecurityContextHolder.clearContext();
+
+            UsernamePasswordAuthenticationToken authentication = buildAuthentication(user, request);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);

@@ -49,10 +49,10 @@ class UserServiceTest {
                     .id(1L)
                     .email(param.getEmail())
                     .password(param.getPassword())
-                    .nickname(param.getNickname())
+                    .username(param.getUsername())
                     .build();
         });
-        when(jwtUtil.generateToken(1L, request.getEmail())).thenReturn("jwt-token");
+        when(jwtUtil.generateAccessToken(1L, request.getEmail())).thenReturn("jwt-token");
 
         AuthResponse response = userService.signup(request);
 
@@ -85,12 +85,12 @@ class UserServiceTest {
                 .id(5L)
                 .email(request.getEmail())
                 .password("encoded-password")
-                .nickname("로그인유저")
+                .username("로그인유저")
                 .build();
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(storedUser));
         when(passwordEncoder.matches(request.getPassword(), storedUser.getPassword())).thenReturn(true);
-        when(jwtUtil.generateToken(storedUser.getId(), storedUser.getEmail())).thenReturn("jwt-token");
+        when(jwtUtil.generateAccessToken(storedUser.getId(), storedUser.getEmail())).thenReturn("jwt-token");
 
         AuthResponse response = userService.login(request);
 
@@ -108,7 +108,7 @@ class UserServiceTest {
                 .id(5L)
                 .email(request.getEmail())
                 .password("encoded-password")
-                .nickname("로그인유저")
+                .username("로그인유저")
                 .build();
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(storedUser));
@@ -119,6 +119,6 @@ class UserServiceTest {
                 .satisfies(ex -> assertThat(((CustomException) ex).getErrorCode())
                         .isEqualTo(ErrorCode.INVALID_PASSWORD));
 
-        verify(jwtUtil, never()).generateToken(anyLong(), anyString());
+        verify(jwtUtil, never()).generateAccessToken(anyLong(), anyString());
     }
 }

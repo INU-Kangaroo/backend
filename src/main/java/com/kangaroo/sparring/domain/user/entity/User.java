@@ -26,7 +26,7 @@ public class User extends BaseEntity {
     private String password;
 
     @Column(nullable = false, length = 50)
-    private String nickname;
+    private String username;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
@@ -39,11 +39,11 @@ public class User extends BaseEntity {
     private String profileImageUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "social_provider", length = 10)
-    private SocialProvider socialProvider;
+    @Column(name = "provider", length = 10)
+    private SocialProvider provider; // "google", "kakao", "local"
 
-    @Column(name = "social_id", length = 255)
-    private String socialId;
+    @Column(name = "provider_id", length = 255)
+    private String providerId;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
@@ -57,9 +57,14 @@ public class User extends BaseEntity {
         this.lastLoginAt = LocalDateTime.now();
     }
 
-    public void updateProfile(String nickname, String profileImageUrl) {
-        this.nickname = nickname;
+    public void updateProfile(String username, String profileImageUrl) {
+        this.username = username;
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public void updateProvider(SocialProvider provider, String providerId) {
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     public void deactivate() {
@@ -69,6 +74,6 @@ public class User extends BaseEntity {
 
     // 소셜 로그인 사용자 여부
     public boolean isSocialUser() {
-        return this.socialProvider != null;
+        return this.provider != null;
     }
 }

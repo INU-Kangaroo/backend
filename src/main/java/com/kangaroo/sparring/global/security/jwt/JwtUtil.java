@@ -28,7 +28,7 @@ public class JwtUtil {
     /**
      * JWT 토큰 생성
      */
-    public String generateToken(Long userId, String email) {
+    public String generateAccessToken(Long userId, String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenValidityMs);
 
@@ -56,23 +56,17 @@ public class JwtUtil {
         try {
             parseClaims(token);
             return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.error("잘못된 JWT 서명입니다.");
-        } catch (ExpiredJwtException e) {
-            log.error("만료된 JWT 토큰입니다.");
-        } catch (UnsupportedJwtException e) {
-            log.error("지원되지 않는 JWT 토큰입니다.");
-        } catch (IllegalArgumentException e) {
-            log.error("JWT 토큰이 잘못되었습니다.");
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("JWT 검증 실패: {}", e.getMessage());
+            return false;
         }
-        return false;
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parser()  // ← parserBuilder() → parser()
-                .verifyWith(secretKey)  // ← setSigningKey() → verifyWith()
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseSignedClaims(token)  // ← parseClaimsJws() → parseSignedClaims()
-                .getPayload();  // ← getBody() → getPayload()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

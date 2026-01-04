@@ -24,5 +24,5 @@ public class SignupRequest {
 
     @Schema(description = "닉네임", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "닉네임은 필수입니다")
-    private String nickname;
+    private String username;
 }

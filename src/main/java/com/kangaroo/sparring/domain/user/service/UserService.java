@@ -3,6 +3,7 @@ package com.kangaroo.sparring.domain.user.service;
 import com.kangaroo.sparring.domain.user.dto.AuthResponse;
 import com.kangaroo.sparring.domain.user.dto.LoginRequest;
 import com.kangaroo.sparring.domain.user.dto.SignupRequest;
+import com.kangaroo.sparring.domain.user.entity.SocialProvider;
 import com.kangaroo.sparring.domain.user.entity.User;
 import com.kangaroo.sparring.domain.user.repository.UserRepository;
 import com.kangaroo.sparring.global.exception.CustomException;
@@ -48,13 +49,13 @@ public class UserService {
         return User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .nickname(request.getNickname())
+                .username(request.getUsername())
                 .build();
     }
 
     private AuthResponse generateAuthResponse(User user) {
-        String accessToken = jwtUtil.generateToken(user.getId(), user.getEmail());
-        return AuthResponse.of(user.getId(), user.getEmail(), user.getNickname(), accessToken);
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
+        return AuthResponse.of(user.getId(), user.getEmail(), user.getUsername(), accessToken);
     }
 
     @Transactional
@@ -79,13 +80,13 @@ public class UserService {
         user.updateLastLogin();
 
         // JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(user.getId(), user.getEmail());
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
 
         log.info("로그인 성공: userId={}", user.getId());
         return AuthResponse.of(
                 user.getId(),
                 user.getEmail(),
-                user.getNickname(),
+                user.getUsername(),
                 accessToken
         );
     }

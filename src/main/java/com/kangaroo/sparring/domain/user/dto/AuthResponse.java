@@ -18,7 +18,7 @@ public class AuthResponse {
     private String email;
 
     @Schema(description = "닉네임", example = "홍길동")
-    private String nickname;
+    private String username;
 
     @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String accessToken;
@@ -26,11 +26,11 @@ public class AuthResponse {
     @Schema(description = "토큰 타입", example = "Bearer")
     private String tokenType;
 
-    public static AuthResponse of(Long userId, String email, String nickname, String accessToken) {
+    public static AuthResponse of(Long userId, String email, String username, String accessToken) {
         return AuthResponse.builder()
                 .userId(userId)
                 .email(email)
-                .nickname(nickname)
+                .username(username)
                 .accessToken(accessToken)
                 .tokenType("Bearer")
                 .build();
