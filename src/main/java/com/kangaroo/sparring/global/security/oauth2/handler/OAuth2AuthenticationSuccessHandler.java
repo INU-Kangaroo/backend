@@ -15,13 +15,20 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import com.kangaroo.sparring.global.security.oauth2.service.RefreshTokenService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.util.UriComponentsBuilder;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper;
+    private final RefreshTokenService refreshTokenService;
+
+    @Value("${oauth2.redirect.success-url}")
+    private String frontendRedirectUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -37,19 +44,22 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.info("OAuth2 Login Success - UserId: {}, Email: {}, Username: {}", userId, email, username);
 
         String accessToken = jwtUtil.generateAccessToken(userId, email);
+        String refreshToken = jwtUtil.generateRefreshToken(userId);
+        
+        // Redis에 리프레시 토큰 저장
+        refreshTokenService.saveRefreshToken(userId, refreshToken);
 
-        AuthResponse authResponse = AuthResponse.builder()
-                .accessToken(accessToken)
-                .userId(userId)
-                .email(email)
-                .username(username)
-                .tokenType("Bearer")
-                .build();
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .queryParam("userId", userId)
+                .queryParam("email", email)
+                .queryParam("username", username)
+                .build()
+                .toUriString();
 
-        response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write(objectMapper.writeValueAsString(authResponse));
+        log.info("Redirecting to frontend: {}", targetUrl);
 
-        log.info("JWT Token issued for user: {}", email);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

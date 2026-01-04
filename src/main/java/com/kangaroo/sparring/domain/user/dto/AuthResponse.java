@@ -23,15 +23,20 @@ public class AuthResponse {
     @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String accessToken;
 
+    @Schema(description = "JWT 리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    private String refreshToken;
+
     @Schema(description = "토큰 타입", example = "Bearer")
     private String tokenType;
 
-    public static AuthResponse of(Long userId, String email, String username, String accessToken) {
+    public static AuthResponse of(Long userId, String email, String username, 
+                                  String accessToken, String refreshToken) {
         return AuthResponse.builder()
                 .userId(userId)
                 .email(email)
                 .username(username)
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .build();
     }

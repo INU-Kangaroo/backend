@@ -16,28 +16,48 @@ public class JwtUtil {
 
     private final SecretKey secretKey;
     private final long accessTokenValidityMs;
+    private final long refreshTokenValidityMs;
 
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.access-token-validity}") long accessTokenValidityMs
+            @Value("${jwt.access-token-validity}") long accessTokenValidityMs,
+            @Value("${jwt.refresh-token-validity}") long refreshTokenValidityMs
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessTokenValidityMs = accessTokenValidityMs;
+        this.refreshTokenValidityMs = refreshTokenValidityMs;
     }
 
     /**
-     * JWT 토큰 생성
+     * JWT 액세스 토큰 생성
      */
     public String generateAccessToken(Long userId, String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenValidityMs);
 
         return Jwts.builder()
-                .subject(String.valueOf(userId))  // ← setSubject → subject
+                .subject(String.valueOf(userId))
                 .claim("email", email)
-                .issuedAt(now)  // ← setIssuedAt → issuedAt
-                .expiration(expiryDate)  // ← setExpiration → expiration
-                .signWith(secretKey, Jwts.SIG.HS256)  // ← SignatureAlgorithm.HS256 → Jwts.SIG.HS256
+                .claim("type", "access") // 토큰 타입 구분
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    /**
+     * JWT 리프레시 토큰 생성
+     */
+    public String generateRefreshToken(Long userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshTokenValidityMs);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("type", "refresh") // 토큰 타입 구분
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -47,6 +67,14 @@ public class JwtUtil {
     public Long getUserIdFromToken(String token) {
         Claims claims = parseClaims(token);
         return Long.parseLong(claims.getSubject());
+    }
+
+    /**
+     * 토큰 타입 확인
+     */
+    public String getTokenType(String token) {
+        Claims claims = parseClaims(token);
+        return (String) claims.get("type");
     }
 
     /**

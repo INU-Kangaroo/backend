@@ -13,6 +13,12 @@ spring:
       minimum-idle: 5
       connection-timeout: 30000
 
+  # Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
   # JPA Configuration
   jpa:
     hibernate:
@@ -71,7 +77,13 @@ spring:
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET}
-  access-token-validity: 86400000  # 24시간 (밀리초)
+  access-token-validity: 3600000    # 1시간 (밀리초)
+  refresh-token-validity: 604800000 # 7일 (밀리초)
+
+# OAuth2 Configuration
+oauth2:
+  redirect:
+    success-url: ${OAUTH2_SUCCESS_REDIRECT_URL}
 
 # Logging Configuration
 logging:

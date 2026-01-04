@@ -9,6 +9,7 @@ import com.kangaroo.sparring.domain.user.repository.UserRepository;
 import com.kangaroo.sparring.global.exception.CustomException;
 import com.kangaroo.sparring.global.exception.ErrorCode;
 import com.kangaroo.sparring.global.security.jwt.JwtUtil;
+import com.kangaroo.sparring.global.security.oauth2.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public AuthResponse signup(SignupRequest request) {
@@ -55,39 +57,105 @@ public class UserService {
 
     private AuthResponse generateAuthResponse(User user) {
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
-        return AuthResponse.of(user.getId(), user.getEmail(), user.getUsername(), accessToken);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+        
+        // Redis에 리프레시 토큰 저장
+        refreshTokenService.saveRefreshToken(user.getId(), refreshToken);
+        
+        return AuthResponse.of(
+            user.getId(), 
+            user.getEmail(), 
+            user.getUsername(), 
+            accessToken,
+            refreshToken
+        );
     }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
         log.info("로그인 시도: {}", request.getEmail());
 
-        // 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
-        // 탈퇴/비활성 사용자 체크
         if (!user.getIsActive() || user.isDeleted()) {
             throw new CustomException(ErrorCode.INACTIVE_USER);
         }
 
-        // 마지막 로그인 시간 업데이트
         user.updateLastLogin();
 
-        // JWT 토큰 생성
-        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
-
         log.info("로그인 성공: userId={}", user.getId());
+        return generateAuthResponse(user); // 리프레시 토큰 포함
+    }
+
+    /**
+     * 액세스 토큰 갱신
+     */
+    @Transactional
+    public AuthResponse refreshAccessToken(String refreshToken) {
+        // 리프레시 토큰 검증
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 토큰 타입 확인
+        String tokenType = jwtUtil.getTokenType(refreshToken);
+        if (!"refresh".equals(tokenType)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 사용자 ID 추출
+        Long userId = jwtUtil.getUserIdFromToken(refreshToken);
+
+        // Redis에 저장된 리프레시 토큰과 비교
+        if (!refreshTokenService.validateRefreshToken(userId, refreshToken)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 새 액세스 토큰 발급
+        String newAccessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail());
+
+        String newRefreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+        refreshTokenService.saveRefreshToken(user.getId(), newRefreshToken);
+
+        log.info("액세스 토큰 갱신 성공: userId={}", userId);
+
         return AuthResponse.of(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
-                accessToken
+                newAccessToken,
+                newRefreshToken
         );
+    }
+
+    /**
+     * 로그아웃
+     */
+    @Transactional
+    public void logout(String accessToken) {
+        // 액세스 토큰 검증
+        if (!jwtUtil.validateToken(accessToken)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+        
+        // 토큰 타입 확인 (액세스 토큰인지 검증)
+        String tokenType = jwtUtil.getTokenType(accessToken);
+        if (!"access".equals(tokenType)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+        
+        Long userId = jwtUtil.getUserIdFromToken(accessToken);
+        refreshTokenService.deleteRefreshToken(userId);
+        log.info("로그아웃 성공: userId={}", userId);
     }
 }

@@ -9,10 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "인증", description = "회원가입 및 로그인 API")
 @RestController
@@ -34,5 +31,36 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = userService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 액세스 토큰 갱신
+     */
+    @PostMapping("/refresh")
+    @Operation(summary = "토큰 갱신", description = "리프레시 토큰으로 새로운 액세스 토큰 발급")
+    public ResponseEntity<AuthResponse> refreshToken(
+            @RequestHeader("Authorization") String refreshToken) {
+        
+        // "Bearer " 제거
+        if (refreshToken.startsWith("Bearer ")) {
+            refreshToken = refreshToken.substring(7);
+        }
+        
+        AuthResponse response = userService.refreshAccessToken(refreshToken);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 로그아웃
+     */
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "리프레시 토큰 무효화")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String accessToken) {
+        if (accessToken.startsWith("Bearer ")) {
+            accessToken = accessToken.substring(7);
+        }
+        
+        userService.logout(accessToken);
+        return ResponseEntity.ok().build();
     }
 }
