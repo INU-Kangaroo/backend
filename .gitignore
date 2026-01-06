@@ -56,7 +56,5 @@ logs/
 *.tmp
 *.temp
 
-# YAML files (except application configuration)
+# YAML files
 *.yml
-!application*.yml
-!**/src/**/application*.yml
