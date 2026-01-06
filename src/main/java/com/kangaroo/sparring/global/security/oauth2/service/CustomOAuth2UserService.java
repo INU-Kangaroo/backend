@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final OAuth2UserService oauth2UserService; // UserService 대신 OAuth2UserService 사용
+    private final OAuth2UserService oauth2UserService;
 
     @Override
     @Transactional

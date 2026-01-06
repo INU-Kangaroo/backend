@@ -1,7 +1,5 @@
 package com.kangaroo.sparring.global.security.oauth2.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kangaroo.sparring.domain.user.dto.AuthResponse;
 import com.kangaroo.sparring.global.security.jwt.JwtUtil;
 import com.kangaroo.sparring.global.security.oauth2.user.CustomOAuth2User;
 import jakarta.servlet.ServletException;

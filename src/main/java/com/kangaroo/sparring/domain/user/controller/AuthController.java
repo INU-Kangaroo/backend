@@ -1,9 +1,13 @@
 package com.kangaroo.sparring.domain.user.controller;
 
-import com.kangaroo.sparring.domain.user.dto.AuthResponse;
-import com.kangaroo.sparring.domain.user.dto.LoginRequest;
-import com.kangaroo.sparring.domain.user.dto.SignupRequest;
+import com.kangaroo.sparring.domain.user.dto.req.EmailRequest;
+import com.kangaroo.sparring.domain.user.dto.req.LoginRequest;
+import com.kangaroo.sparring.domain.user.dto.req.SignupRequest;
+import com.kangaroo.sparring.domain.user.dto.req.VerifyCodeRequest;
+import com.kangaroo.sparring.domain.user.dto.res.AuthResponse;
+import com.kangaroo.sparring.domain.user.dto.res.MessageResponse;
 import com.kangaroo.sparring.domain.user.service.UserService;
+import com.kangaroo.sparring.global.email.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,12 +22,36 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final EmailService emailService;
 
-    @Operation(summary = "회원가입", description = "이메일과 비밀번호로 회원가입합니다")
+    /**
+     * 이메일 인증코드 발송
+     */
+    @PostMapping("/send-verification")
+    @Operation(summary = "이메일 인증코드 발송", description = "회원가입을 위한 이메일 인증코드를 발송합니다")
+    public ResponseEntity<MessageResponse> sendVerificationCode(@Valid @RequestBody EmailRequest request) {
+        emailService.sendVerificationCode(request.getEmail());
+        return ResponseEntity.ok(MessageResponse.of(request.getEmail(), "인증코드가 발송되었습니다."));
+    }
+
+    /**
+     * 인증코드 검증
+     */
+    @PostMapping("/verify-code")
+    @Operation(summary = "인증코드 검증", description = "이메일로 받은 인증코드를 검증합니다")
+    public ResponseEntity<MessageResponse> verifyCode(@Valid @RequestBody VerifyCodeRequest request) {
+        emailService.verifyCode(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(MessageResponse.of(request.getEmail(), "이메일 인증이 완료되었습니다."));
+    }
+
+    /**
+     * 회원가입
+     */
+    @Operation(summary = "회원가입", description = "이메일과 비밀번호로 회원가입합니다. 이메일 인증이 필요합니다.")
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signup(@Valid @RequestBody SignupRequest request) {
-        AuthResponse response = userService.signup(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<MessageResponse> signup(@Valid @RequestBody SignupRequest request) {
+        userService.signup(request);
+        return ResponseEntity.ok(MessageResponse.of(request.getEmail(), "회원가입이 완료되었습니다."));
     }
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다")

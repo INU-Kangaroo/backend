@@ -1,4 +1,4 @@
-package com.kangaroo.sparring.domain.user.dto;
+package com.kangaroo.sparring.domain.user.dto.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

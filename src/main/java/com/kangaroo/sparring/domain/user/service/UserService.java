@@ -1,11 +1,11 @@
 package com.kangaroo.sparring.domain.user.service;
 
-import com.kangaroo.sparring.domain.user.dto.AuthResponse;
-import com.kangaroo.sparring.domain.user.dto.LoginRequest;
-import com.kangaroo.sparring.domain.user.dto.SignupRequest;
-import com.kangaroo.sparring.domain.user.entity.SocialProvider;
+import com.kangaroo.sparring.domain.user.dto.res.AuthResponse;
+import com.kangaroo.sparring.domain.user.dto.req.LoginRequest;
+import com.kangaroo.sparring.domain.user.dto.req.SignupRequest;
 import com.kangaroo.sparring.domain.user.entity.User;
 import com.kangaroo.sparring.domain.user.repository.UserRepository;
+import com.kangaroo.sparring.global.email.EmailService;
 import com.kangaroo.sparring.global.exception.CustomException;
 import com.kangaroo.sparring.global.exception.ErrorCode;
 import com.kangaroo.sparring.global.security.jwt.JwtUtil;
@@ -26,17 +26,24 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final EmailService emailService;
 
     @Transactional
-    public AuthResponse signup(SignupRequest request) {
+    public void signup(SignupRequest request) {
         log.info("회원가입 시도: {}", request.getEmail());
+
+        // 이메일 인증 확인
+        if (!emailService.isEmailVerified(request.getEmail())) {
+            throw new CustomException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
 
         validateDuplicateEmail(request.getEmail());
         User user = userRepository.save(createUser(request));
 
-        log.info("회원가입 성공: userId={}, email={}", user.getId(), user.getEmail());
+        // 인증 플래그 삭제
+        emailService.deleteVerifiedFlag(request.getEmail());
 
-        return generateAuthResponse(user);
+        log.info("회원가입 성공: userId={}, email={}", user.getId(), user.getEmail());
     }
 
     // 이메일 중복 체크

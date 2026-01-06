@@ -19,6 +19,12 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "A002", "만료된 토큰입니다"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A003", "인증이 필요합니다"),
 
+    // Email Verification (여기에 추가!)
+    EMAIL_NOT_VERIFIED(HttpStatus.FORBIDDEN, "E001", "이메일 인증이 필요합니다"),
+    INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "E002", "유효하지 않은 인증코드입니다"),
+    EXPIRED_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "E003", "만료된 인증코드입니다"),
+
+
     // Common
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "C001", "잘못된 입력값입니다"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C002", "서버 오류가 발생했습니다");
