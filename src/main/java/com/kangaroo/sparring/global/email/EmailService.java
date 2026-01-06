@@ -30,6 +30,8 @@ public class EmailService {
     private static final String VERIFIED_PREFIX = "email:verified:";
     private static final int CODE_EXPIRATION_MINUTES = 5;
     private static final int VERIFIED_EXPIRATION_MINUTES = 30;
+    private static final String RESEND_COOLDOWN_PREFIX = "email:cooldown:";
+    private static final int RESEND_COOLDOWN_SECONDS = 60; // 1분
 
     /**
      * 이메일 인증코드 발송
@@ -55,6 +57,48 @@ public class EmailService {
         sendEmail(email, code);
 
         log.info("이메일 인증코드 발송 완료: email={}, code={}", email, code);
+    }
+
+    /**
+     * 이메일 인증코드 재발송
+     */
+    public void resendVerificationCode(String email) {
+        // 쿨다운 체크
+        String cooldownKey = RESEND_COOLDOWN_PREFIX + email;
+        String cooldown = redisTemplate.opsForValue().get(cooldownKey);
+
+        if (cooldown != null) {
+            throw new CustomException(ErrorCode.TOO_MANY_REQUESTS);
+        }
+
+        // 중복 이메일 체크
+        if (userRepository.existsByEmail(email)) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+
+        // 새 인증코드 생성
+        String code = generateRandomCode();
+
+        // Redis에 저장 (5분)
+        redisTemplate.opsForValue().set(
+                CODE_PREFIX + email,
+                code,
+                CODE_EXPIRATION_MINUTES,
+                TimeUnit.MINUTES
+        );
+
+        // 쿨다운 설정 (1분)
+        redisTemplate.opsForValue().set(
+                cooldownKey,
+                "true",
+                RESEND_COOLDOWN_SECONDS,
+                TimeUnit.SECONDS
+        );
+
+        // 이메일 발송
+        sendEmail(email, code);
+
+        log.info("이메일 인증코드 재발송 완료: email={}, code={}", email, code);
     }
 
     /**

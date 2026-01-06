@@ -35,6 +35,16 @@ public class AuthController {
     }
 
     /**
+     * 이메일 인증코드 재발송
+     */
+    @PostMapping("/resend-verification")
+    @Operation(summary = "이메일 인증코드 재발송", description = "이메일 인증코드를 재발송합니다 (1분 쿨다운)")
+    public ResponseEntity<MessageResponse> resendVerificationCode(@Valid @RequestBody EmailRequest request) {
+        emailService.resendVerificationCode(request.getEmail());
+        return ResponseEntity.ok(MessageResponse.of(request.getEmail(), "인증코드가 재발송되었습니다."));
+    }
+
+    /**
      * 인증코드 검증
      */
     @PostMapping("/verify-code")

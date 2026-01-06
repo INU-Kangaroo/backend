@@ -22,7 +22,7 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: update # 개발: update, 운영: validate
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -73,6 +73,7 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
   # Mail Configuration
   mail:
     host: smtp.gmail.com
@@ -93,8 +94,8 @@ spring:
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET}
-  access-token-validity: 3600000    # 1시간 (밀리초)
-  refresh-token-validity: 604800000 # 7일 (밀리초)
+  access-token-validity: 3600000    # 1시간
+  refresh-token-validity: 604800000 # 7일
 
 # OAuth2 Configuration
 oauth2:
